@@ -175,11 +175,13 @@ int squashfs_read_data(struct super_block *sb, u64 index, int length,
 		 * Block is uncompressed.
 		 */
 		int in, pg_offset = 0;
-		void *data = squashfs_first_page(output);
 
 		for (bytes = length; k < b; k++) {
 			in = min(bytes, msblk->devblksize - offset);
 			bytes -= in;
+			wait_on_buffer(bh[k]);
+			if (!buffer_uptodate(bh[k]))
+				goto block_release;
 			while (in) {
 				if (pg_offset == PAGE_CACHE_SIZE) {
 					data = squashfs_next_page(output);
