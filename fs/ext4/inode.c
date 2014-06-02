@@ -149,6 +149,9 @@ int ext4_inode_is_fast_symlink(struct inode *inode)
 	if (ext4_has_inline_data(inode))
 		return 0;
 
+	if (ext4_has_inline_data(inode))
+		return 0;
+
 	return (S_ISLNK(inode->i_mode) && inode->i_blocks - ea_blocks == 0);
 }
 
