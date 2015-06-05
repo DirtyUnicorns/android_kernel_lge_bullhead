@@ -361,7 +361,7 @@ static int cpu_power_select(struct cpuidle_device *dev,
 	if (modified_time_us)
 		msm_pm_set_timer(modified_time_us);
 
-	trace_cpu_idle_enter(best_level, sleep_us, latency_us, next_event_us);
+	trace_cpu_power_select(best_level, sleep_us, latency_us, next_event_us);
 
 	return best_level;
 }
