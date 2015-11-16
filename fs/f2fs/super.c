@@ -238,6 +238,114 @@ static int f2fs_show_options(struct seq_file *seq, struct dentry *root)
 #endif
 	if (test_opt(sbi, DISABLE_EXT_IDENTIFY))
 		seq_puts(seq, ",disable_ext_identify");
+	if (test_opt(sbi, INLINE_DATA))
+		seq_puts(seq, ",inline_data");
+	else
+		seq_puts(seq, ",noinline_data");
+	if (test_opt(sbi, INLINE_DENTRY))
+		seq_puts(seq, ",inline_dentry");
+	if (!f2fs_readonly(sbi->sb) && test_opt(sbi, FLUSH_MERGE))
+		seq_puts(seq, ",flush_merge");
+	if (test_opt(sbi, NOBARRIER))
+		seq_puts(seq, ",nobarrier");
+	if (test_opt(sbi, FASTBOOT))
+		seq_puts(seq, ",fastboot");
+	if (test_opt(sbi, EXTENT_CACHE))
+		seq_puts(seq, ",extent_cache");
+
+
+	return 0;
+}
+
+static int segment_info_seq_show(struct seq_file *seq, void *offset)
+{
+	struct super_block *sb = seq->private;
+	struct f2fs_sb_info *sbi = F2FS_SB(sb);
+	unsigned int total_segs =
+			le32_to_cpu(sbi->raw_super->segment_count_main);
+	int i;
+
+	seq_puts(seq, "format: segment_type|valid_blocks\n"
+		"segment_type(0:HD, 1:WD, 2:CD, 3:HN, 4:WN, 5:CN)\n");
+
+	for (i = 0; i < total_segs; i++) {
+		struct seg_entry *se = get_seg_entry(sbi, i);
+
+		if ((i % 10) == 0)
+			seq_printf(seq, "%-5d", i);
+		seq_printf(seq, "%d|%-3u", se->type,
+					get_valid_blocks(sbi, i, 1));
+		if ((i % 10) == 9 || i == (total_segs - 1))
+			seq_putc(seq, '\n');
+		else
+			seq_putc(seq, ' ');
+	}
+
+	return 0;
+}
+
+static int segment_info_open_fs(struct inode *inode, struct file *file)
+{
+	return single_open(file, segment_info_seq_show, PDE_DATA(inode));
+}
+
+static const struct file_operations f2fs_seq_segment_info_fops = {
+	.owner = THIS_MODULE,
+	.open = segment_info_open_fs,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static int f2fs_remount(struct super_block *sb, int *flags, char *data)
+{
+	struct f2fs_sb_info *sbi = F2FS_SB(sb);
+	struct f2fs_mount_info org_mount_opt;
+	int err, active_logs;
+	bool need_restart_gc = false;
+	bool need_stop_gc = false;
+
+	sync_filesystem(sb);
+
+	/*
+	 * Save the old mount options in case we
+	 * need to restore them.
+	 */
+	org_mount_opt = sbi->mount_opt;
+	active_logs = sbi->active_logs;
+
+	sbi->mount_opt.opt = 0;
+	sbi->active_logs = NR_CURSEG_TYPE;
+
+	/* parse mount options */
+	err = parse_options(sb, data);
+	if (err)
+		goto restore_opts;
+
+	/*
+	 * Previous and new state of filesystem is RO,
+	 * so skip checking GC and FLUSH_MERGE conditions.
+	 */
+	if (f2fs_readonly(sb) && (*flags & MS_RDONLY))
+		goto skip;
+
+	/*
+	 * We stop the GC thread if FS is mounted as RO
+	 * or if background_gc = off is passed in mount
+	 * option. Also sync the filesystem.
+	 */
+	if ((*flags & MS_RDONLY) || !test_opt(sbi, BG_GC)) {
+		if (sbi->gc_thread) {
+			stop_gc_thread(sbi);
+			f2fs_sync_fs(sb, 1);
+			need_restart_gc = true;
+		}
+	} else if (!sbi->gc_thread) {
+		err = start_gc_thread(sbi);
+		if (err)
+			goto restore_opts;
+		need_stop_gc = true;
+	}
 
 	seq_printf(seq, ",active_logs=%u", sbi->active_logs);
 
