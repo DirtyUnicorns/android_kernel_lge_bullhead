@@ -41,6 +41,10 @@
 #include <linux/wakelock.h>
 #endif
 
+#ifdef CONFIG_MSM_HOTPLUG
+#include <linux/msm_hotplug.h>
+#endif
+
 #include "synaptics_i2c_rmi4.h"
 #include <linux/input/mt.h>
 
@@ -120,6 +124,11 @@ enum device_status {
 #define F11_MAX_Y		4096
 #define F12_MAX_X		65536
 #define F12_MAX_Y		65536
+
+#ifdef CONFIG_MSM_HOTPLUG
+extern void msm_hotplug_suspend(void);
+extern void msm_hotplug_resume(void);
+#endif
 
 static int synaptics_rmi4_i2c_read(struct synaptics_rmi4_data *rmi4_data,
 		unsigned short addr, unsigned char *data,
@@ -4484,6 +4493,9 @@ static int synaptics_rmi4_regulator_lpm(struct synaptics_rmi4_data *rmi4_data,
 	}
 
 	pr_info("touch off\n");
+#ifdef CONFIG_MSM_HOTPLUG
+	msm_hotplug_suspend();
+#endif
 
 	return 0;
 
@@ -4534,6 +4546,9 @@ regulator_hpm:
 	}
 
 	pr_info("touch on\n");
+#ifdef CONFIG_MSM_HOTPLUG
+	msm_hotplug_resume();
+#endif
 
 	return 0;
 
@@ -4640,12 +4655,20 @@ static int synaptics_rmi4_suspend(struct device *dev)
 	struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
 	int retval;
 
+
 #ifdef CONFIG_WAKE_GESTURES
 	if (gestures_enabled) {
 		s2w_enable(rmi4_data, true);
 		return 0;
 	}
 #endif
+
+#ifdef CONFIG_MSM_HOTPLUG
+	msm_hotplug_scr_suspended = true;
+	if (msm_enabled)
+		msm_hotplug_suspend();
+#endif
+
 	if (rmi4_data->stay_awake) {
 		rmi4_data->staying_awake = true;
 		return 0;
@@ -4741,6 +4764,12 @@ static int synaptics_rmi4_resume(struct device *dev)
 		s2w_enable(rmi4_data, false);
 		goto out;
 	}
+#endif
+
+#ifdef CONFIG_MSM_HOTPLUG
+	msm_hotplug_scr_suspended = false;
+	if (msm_enabled)
+		msm_hotplug_resume();
 #endif
 
 	if (rmi4_data->staying_awake)
