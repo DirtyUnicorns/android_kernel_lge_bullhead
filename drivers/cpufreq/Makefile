@@ -14,6 +14,7 @@ obj-$(CONFIG_CPU_FREQ_GOV_INTELLIACTIVE)+= cpufreq_intelliactive.o
 obj-$(CONFIG_CPU_FREQ_GOV_WHEATLEY)		+= cpufreq_wheatley.o
 obj-$(CONFIG_CPU_FREQ_GOV_IMPULSE)		+= cpufreq_impulse.o
 obj-$(CONFIG_CPU_FREQ_GOV_DESPAIR)	    += cpufreq_despair.o
+obj-$(CONFIG_CPU_FREQ_GOV_IRONACTIVE)	+= cpufreq_ironactive.o
 
 obj-$(CONFIG_CPU_FREQ_GOV_COMMON)	+= cpufreq_governor.o
 obj-$(CONFIG_CPU_BOOST)				+= cpu-boost.o
