@@ -426,6 +426,8 @@ struct mdss_dsi_ctrl_pdata {
 	struct regulator *dsvreg;
 	bool dfps_status;	/* dynamic refresh status */
 	struct platform_device *pdev;
+
+	struct timespec wait_until_ts;
 };
 
 struct dsi_status_data {
