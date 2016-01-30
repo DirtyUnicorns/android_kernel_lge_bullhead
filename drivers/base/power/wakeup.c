@@ -31,6 +31,9 @@ module_param(enable_wlan_wake_ws, bool, 0644);
 
 #include "power.h"
 
+static bool enable_ipa_ws = true;
+module_param(enable_ipa_ws, bool, 0644);
+
 /*
  * If set, the suspend/hibernate code will abort transitions to a sleep state
  * if wakeup events are registered during or immediately before the transition.
@@ -438,6 +441,9 @@ static void wakeup_source_activate(struct wakeup_source *ws)
 
 	if (!enable_wlan_wake_ws && !strcmp(ws->name, "wlan_wake"))
                 return;
+
+	if (!enable_ipa_ws && !strcmp(ws->name, "IPA_WS"))
+		return;
 
 	/*
 	 * active wakeup source should bring the system
