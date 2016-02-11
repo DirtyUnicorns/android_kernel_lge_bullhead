@@ -94,7 +94,7 @@ static struct cpu_hotplug {
 	.hotplug_suspend = 1,
 };
 
-static unsigned int NwNs_Threshold[12] = {12, 0, 25, 7, 30, 10, 35, 13, 40, 16, 0, 20};
+static unsigned int NwNs_Threshold[12] = {10, 0, 17, 5, 25, 10, 40, 15, 50, 30, 0, 35};
 static unsigned int TwTs_Threshold[12] = {140, 0, 140, 190, 140, 190, 140, 190, 140, 190, 0, 190};
 
 struct down_lock {
