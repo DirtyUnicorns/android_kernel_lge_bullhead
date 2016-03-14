@@ -196,7 +196,12 @@ struct cs_dbs_tuners {
 	unsigned int down_threshold;
 	unsigned int freq_step;
 	unsigned int input_boost_freq;
-	u64 input_boost_duration;
+//	u64 input_boost_duration;
+	unsigned int input_boost_duration;
+	unsigned int twostep_threshold;
+	unsigned int min_load;
+	unsigned int twostep_counter;
+	u64 twostep_time;
 };
 
 struct ex_dbs_tuners {
@@ -300,3 +305,4 @@ void od_register_powersave_bias_handler(unsigned int (*f)
 		unsigned int powersave_bias);
 void od_unregister_powersave_bias_handler(void);
 #endif /* _CPUFREQ_GOVERNOR_H */
+
