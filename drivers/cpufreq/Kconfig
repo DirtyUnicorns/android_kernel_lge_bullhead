@@ -143,6 +143,11 @@ config CPU_FREQ_DEFAULT_GOV_IMPULSE
 	  loading your cpufreq low-level hardware driver, using the
 	  'impulse' governor for latency-sensitive workloads.
 
+config CPU_FREQ_DEFAULT_GOV_DESPAIR
+	bool "despair"
+	select CPU_FREQ_GOV_DESPAIR
+	help
+
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -268,6 +273,10 @@ config CPU_FREQ_GOV_INTELLIACTIVE
 
 config CPU_FREQ_GOV_WHEATLEY
 	tristate "'wheatley' cpufreq governor"
+	depends on CPU_FREQ
+
+config CPU_FREQ_GOV_DESPAIR
+	tristate "'despair' cpufreq governor"
 	depends on CPU_FREQ
 
 config CPU_BOOST
