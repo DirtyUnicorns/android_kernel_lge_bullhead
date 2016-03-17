@@ -33,18 +33,18 @@
 
 #define DEBUG 0
 
-#define MPDEC_TAG			"bricked_hotplug"
-#define HOTPLUG_ENABLED			      0
+#define MPDEC_TAG			  "bricked_hotplug"
+#define HOTPLUG_ENABLED			  0
 #define MSM_MPDEC_STARTDELAY		  100
-#define MSM_MPDEC_DELAY			      130
+#define MSM_MPDEC_DELAY			  130
 #define DEFAULT_MIN_CPUS_ONLINE		  1
 #define DEFAULT_MAX_CPUS_ONLINE		  NR_CPUS
-#define DEFAULT_MAX_CPUS_ONLINE_SUSP  1
+#define DEFAULT_MAX_CPUS_ONLINE_SUSP  	  1
 #define DEFAULT_SUSPEND_DEFER_TIME	  10
 #define DEFAULT_DOWN_LOCK_DUR		  500
-#define NUM_LITTLE_CORES		4
-#define NUM_BIG_CORES			2
-#define MSM_MPDEC_IDLE_FREQ		      384000
+#define NUM_LITTLE_CORES		  4
+#define NUM_BIG_CORES			  2
+#define MSM_MPDEC_IDLE_FREQ		  384000
 
 enum {
 	MSM_MPDEC_DISABLED = 0,
@@ -711,10 +711,19 @@ static ssize_t store_max_cpus_online_susp(struct device *dev,
 				const char *buf, size_t count)
 {
 	unsigned int input;
-	int ret;
+	int ret, cpu;
 	ret = sscanf(buf, "%u", &input);
 	if ((ret != 1) || input < 1 || input > DEFAULT_MAX_CPUS_ONLINE)
 			return -EINVAL;
+
+	if (hotplug.suspended && hotplug.max_cpus_online_susp>1 && input<=1) {
+		cancel_delayed_work_sync(&hotplug_work);
+
+		for_each_possible_cpu(cpu) {
+			if ((cpu >= 1) && (cpu_online(cpu)))
+				cpu_down(cpu);
+		}
+	}
 
 	hotplug.max_cpus_online_susp = input;
 
