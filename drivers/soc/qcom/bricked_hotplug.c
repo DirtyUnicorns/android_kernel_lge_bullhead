@@ -44,7 +44,7 @@
 #define DEFAULT_DOWN_LOCK_DUR		  500
 #define NUM_LITTLE_CORES		  4
 #define NUM_BIG_CORES			  2
-#define MSM_MPDEC_IDLE_FREQ		  384000
+#define MSM_MPDEC_IDLE_FREQ		  302400
 
 enum {
 	MSM_MPDEC_DISABLED = 0,
@@ -94,8 +94,8 @@ static struct cpu_hotplug {
 	.hotplug_suspend = 1,
 };
 
-static unsigned int NwNs_Threshold[12] = {10, 0, 17, 5, 25, 10, 40, 15, 50, 30, 0, 35};
-static unsigned int TwTs_Threshold[12] = {140, 0, 140, 190, 140, 190, 140, 190, 140, 190, 0, 190};
+static unsigned int NwNs_Threshold[13] = {10, 0, 17, 5, 25, 10, 30, 15, 40, 20, 45, 35, 50};
+static unsigned int TwTs_Threshold[13] = {140, 190, 140, 190, 140, 190, 140, 190, 140, 190, 140, 190, 140};
 
 struct down_lock {
 	unsigned int locked;
@@ -211,8 +211,8 @@ static int mp_decision(void) {
 
 	last_time = ktime_to_ms(ktime_get());
 #if DEBUG
-	pr_info(MPDEC_TAG"[DEBUG] rq: %u, new_state: %i | Mask=[%d%d%d%d]\n",
-			rq_depth, new_state, cpu_online(0), cpu_online(1), cpu_online(2), cpu_online(3));
+	pr_info(MPDEC_TAG"[DEBUG] rq: %u, new_state: %i | Mask=[%d%d%d%d%d%d]\n",
+			rq_depth, new_state, cpu_online(0), cpu_online(1), cpu_online(2), cpu_online(3), cpu_online(4), cpu_online(5));
 #endif
 	return new_state;
 }
@@ -291,8 +291,8 @@ static void bricked_hotplug_suspend(struct work_struct *work)
 			cpu_down(cpu);
 	}
 
-	pr_info(MPDEC_TAG": Screen -> off. Deactivated bricked hotplug. | Mask=[%d%d%d%d]\n",
-			cpu_online(0), cpu_online(1), cpu_online(2), cpu_online(3));
+	pr_info(MPDEC_TAG": Screen -> off. Deactivated bricked hotplug. | Mask=[%d%d%d%d%d%d]\n",
+			cpu_online(0), cpu_online(1), cpu_online(2), cpu_online(3), cpu_online(4), cpu_online(5));
 }
 
 static void __ref bricked_hotplug_resume(struct work_struct *work)
@@ -332,8 +332,8 @@ static void __ref bricked_hotplug_resume(struct work_struct *work)
 	/* Resume hotplug workqueue if required */
 	if (required_reschedule) {
 		queue_delayed_work(hotplug_wq, &hotplug_work, 0);
-		pr_info(MPDEC_TAG": Screen -> on. Activated bricked hotplug. | Mask=[%d%d%d%d]\n",
-				cpu_online(0), cpu_online(1), cpu_online(2), cpu_online(3));
+		pr_info(MPDEC_TAG": Screen -> on. Activated bricked hotplug. | Mask=[%d%d%d%d%d%d]\n",
+				cpu_online(0), cpu_online(1), cpu_online(2), cpu_online(3), cpu_online(4), cpu_online(5));
 	}
 }
 
@@ -540,6 +540,8 @@ define_one_twts(twts_threshold_8, 8);
 define_one_twts(twts_threshold_9, 9);
 define_one_twts(twts_threshold_10, 10);
 define_one_twts(twts_threshold_11, 11);
+define_one_twts(twts_threshold_12, 12);
+define_one_twts(twts_threshold_13, 13);
 
 #define define_one_nwns(file_name, arraypos)				\
 static ssize_t show_##file_name						\
@@ -573,6 +575,8 @@ define_one_nwns(nwns_threshold_8, 8);
 define_one_nwns(nwns_threshold_9, 9);
 define_one_nwns(nwns_threshold_10, 10);
 define_one_nwns(nwns_threshold_11, 11);
+define_one_nwns(nwns_threshold_12, 12);
+define_one_nwns(nwns_threshold_13, 13);
 
 static ssize_t show_idle_freq (struct device *dev,
 				struct device_attribute *bricked_hotplug_attrs,
@@ -838,6 +842,8 @@ static struct attribute *bricked_hotplug_attrs[] = {
 	&dev_attr_twts_threshold_9.attr,
 	&dev_attr_twts_threshold_10.attr,
 	&dev_attr_twts_threshold_11.attr,
+	&dev_attr_twts_threshold_12.attr,
+	&dev_attr_twts_threshold_13.attr,
 	&dev_attr_nwns_threshold_0.attr,
 	&dev_attr_nwns_threshold_1.attr,
 	&dev_attr_nwns_threshold_2.attr,
@@ -850,6 +856,8 @@ static struct attribute *bricked_hotplug_attrs[] = {
 	&dev_attr_nwns_threshold_9.attr,
 	&dev_attr_nwns_threshold_10.attr,
 	&dev_attr_nwns_threshold_11.attr,
+	&dev_attr_nwns_threshold_12.attr,
+	&dev_attr_nwns_threshold_13.attr,
 	NULL,
 };
 
