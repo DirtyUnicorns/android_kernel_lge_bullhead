@@ -422,6 +422,7 @@ static void cpufreq_interactive_timer(unsigned long data)
 	unsigned int index;
 	unsigned long flags;
 	unsigned long max_cpu;
+	unsigned int this_hispeed_freq;
 	int i;
 	struct cpufreq_govinfo govinfo;
 
@@ -493,10 +494,10 @@ static void cpufreq_interactive_timer(unsigned long data)
 				new_freq = tunables->hispeed_freq;
 		}
 	} else {
-		new_freq = choose_freq(pcpu, loadadjfreq);
-		if (new_freq > tunables->hispeed_freq &&
-				pcpu->target_freq < tunables->hispeed_freq)
-			new_freq = tunables->hispeed_freq;
+			new_freq = choose_freq(ppol, loadadjfreq);
+
+			if (new_freq < this_hispeed_freq)
+				new_freq = this_hispeed_freq;
 	}
 
 	if (cpu_load <= MAX_LOCAL_LOAD &&
