@@ -55,6 +55,7 @@ struct cpufreq_interactive_policyinfo {
 	bool reject_notification;
 	int governor_enabled;
 	struct cpufreq_interactive_tunables *cached_tunables;
+	unsigned long *cpu_busy_times;
 };
 
 /* Protected by per-policy load_lock */
@@ -425,7 +426,6 @@ static void cpufreq_interactive_timer(unsigned long data)
 	unsigned int index;
 	unsigned long flags;
 	unsigned long max_cpu;
-	unsigned int this_hispeed_freq;
 	int i;
 	struct cpufreq_govinfo govinfo;
 	unsigned int this_hispeed_freq;
